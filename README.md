@@ -25,6 +25,12 @@ mvn clojure:test
 mvn install
 ```
 
+## Troubleshooting
+
+If cmake . fails with an error like "Could NOT find JNI (missing: JAVA_INCLUDE_PATH JAVA_INCLUDE_PATH2
+JAVA_AWN_INCLUDE_PATH)", the most likely culprit seems to be an issue with your JAVA_HOME environment
+variable.
+
 ## TODO
 
 * Build 32 and 64 bit libraries for Windows, Linux and Mac OS X. Currently I
