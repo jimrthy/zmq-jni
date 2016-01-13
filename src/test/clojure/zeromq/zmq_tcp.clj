@@ -127,6 +127,15 @@
     (let [actual (receive-str sub)]
       (is (= "helloworld" actual)))))
 
+(deftest failed-recv-test
+  (with-open [context (zmq/context)
+              pull (doto (zmq/socket context :pull)
+                     (zmq/connect "tcp://localhost:6001"))]
+    (println "Calling receive with flags:" zmq/dont-wait)
+    (let [actual (zmq/receive pull zmq/dont-wait)]
+      (println "Response:\n" actual)
+      (is (nil? actual)))))
+
 (deftest multi-part-test
   (with-open [context (zmq/context)
               push (doto (zmq/socket context :push)
