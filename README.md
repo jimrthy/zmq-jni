@@ -25,6 +25,12 @@ mvn clojure:test
 mvn install
 ```
 
+## Deploy locally without signing
+
+```bash
+mvn install -Dgpg.skip=true
+```
+
 ## Troubleshooting
 
 If cmake . fails with an error like "Could NOT find JNI (missing: JAVA_INCLUDE_PATH JAVA_INCLUDE_PATH2
