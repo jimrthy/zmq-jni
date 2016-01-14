@@ -133,8 +133,7 @@
                      (zmq/connect "tcp://localhost:6001"))]
     (try
       (let [actual (zmq/receive pull zmq/dont-wait)]
-        (is false "That should have thrown an exception")
-        (is (nil? actual) (str "Expected NULL. Got:\n'" (String. actual) "'")))
+        (is false "That should have thrown an exception"))
       (catch RuntimeException ex
         (let [errno (zmq/errno pull)]
           ;; TODO: This really should be made portable
