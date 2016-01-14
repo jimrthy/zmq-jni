@@ -150,19 +150,15 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket,
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint flags)
 {
+    jbyteArray buf;
 #if true
-  jbyteArray buf(env->NewByteArray(21));
-          env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
-          return buf;
+    buf = env->NewByteArray(21);
+    // Q: How on Earth are any tests working?
+    env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
 #else
-#if false
-  printf("This has to be what is getting called. Why does nothing happen?\n");
-  abort();
-  assert(0);
-  FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "w"));
-  fprintf(fp, "For the love of all that's holy, where is this going?\n");
-  fclose(fp);
-#endif
+          // This is what actually should happen.
+          // More or less.
+          // With some sort of error handling.
     zmq_msg_t msg;
     zmq_msg_init (&msg);
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
@@ -170,35 +166,14 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
 #else
     int result(zmq_recv ((void *) socket, &msg, flags));
 #endif
-    jbyteArray buf;
     if(result >= 0)
     {
-#if false
-      assert(0);
-      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
-      fprintf(fp, "Received bytes. Shouldn't happen\n");
-      fclose(fp);
-#endif
-
-#if false
-      int size = zmq_msg_size (&msg);
-      buf = env->NewByteArray (size);
-      env->SetByteArrayRegion (buf, 0, size, (jbyte*) zmq_msg_data (&msg));
-        }
-#else
-          buf = env->NewByteArray(21);
-          env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
-#endif
+      int size = zmq_msg_size(&msg);
+          buf = env->NewByteArray(size);
+          env->SetByteArrayRegion(buf, 0, size, (jbyte*) zmq_msg_data (&msg));
     }
     else
       {
-      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
-#if false
-        // This fails
-        buf = env->NewGlobalRef(NULL);
-        // So does this
-        buf = 0;
-#else
         jclass klass(env->FindClass("java/lang/Exception"));
         if(klass)
           {
@@ -210,15 +185,13 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
           }
         else
           {
-            fprintf(fp, "Couldn't track down Exception. WTF?");
+      // Q: Is there anything reasonable/useful that can happen here?
             return NULL;
           }
-        fclose(fp);
-#endif
       }
     zmq_msg_close(&msg);
-    return buf;
 #endif
+    return buf;
 }
 
 JNIEXPORT jint JNICALL
@@ -257,11 +230,6 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
 {
-  assert(0);
-  abort();
-      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
-      fprintf(fp, "sock, buf, flags");
-      fclose(fp);
     jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
     if(data == NULL)
         return -1;
