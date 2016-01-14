@@ -133,8 +133,8 @@
                      (zmq/connect "tcp://localhost:6001"))]
     (println "Calling receive with flags:" zmq/dont-wait)
     (let [actual (zmq/receive pull zmq/dont-wait)]
-      (println "Response:\n" actual)
-      (is (nil? actual)))))
+      (println "Response:\n'" actual "'\nLength: " (count actual))
+      (is (nil? actual) (str "Expected NULL. Got:\n'" (String. actual) "'")))))
 
 (deftest multi-part-test
   (with-open [context (zmq/context)

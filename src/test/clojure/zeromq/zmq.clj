@@ -147,6 +147,7 @@
   (receive [this]
     (receive this 0))
   (receive [this flags]
+    (println "Calling zmq_recv w/ socket @" address "flags:" flags)
     (ZMQ/zmq_recv address (int flags)))
   (receive [this buffer flags]
     (receive this buffer 0 (count buffer) flags))

@@ -5,7 +5,11 @@
  */
 
 #warning "Don't do this"
+#undef NDEBUG
+#include <assert.h>
 #include <stdio.h>
+
+
 #include <sodium.h>
 #include <inttypes.h>
 #include "zmq.h"
@@ -146,9 +150,19 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket,
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint flags)
 {
-  FILE* fp(fopen("ridiculous.txt", "at"));
+#if true
+  jbyteArray buf(env->NewByteArray(21));
+          env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
+          return buf;
+#else
+#if false
+  printf("This has to be what is getting called. Why does nothing happen?\n");
+  abort();
+  assert(0);
+  FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "w"));
   fprintf(fp, "For the love of all that's holy, where is this going?\n");
   fclose(fp);
+#endif
     zmq_msg_t msg;
     zmq_msg_init (&msg);
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
@@ -159,16 +173,26 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
     jbyteArray buf;
     if(result >= 0)
     {
-      FILE* fp(fopen("ridiculous.txt", "at"));
+#if false
+      assert(0);
+      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
       fprintf(fp, "Received bytes. Shouldn't happen\n");
       fclose(fp);
+#endif
+
+#if false
       int size = zmq_msg_size (&msg);
-      jbyteArray buf = env->NewByteArray (size);
+      buf = env->NewByteArray (size);
       env->SetByteArrayRegion (buf, 0, size, (jbyte*) zmq_msg_data (&msg));
+        }
+#else
+          buf = env->NewByteArray(21);
+          env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
+#endif
     }
     else
       {
-      FILE* fp(fopen("ridiculous.txt", "at"));
+      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
 #if false
         // This fails
         buf = env->NewGlobalRef(NULL);
@@ -181,6 +205,8 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
             fprintf(fp, "recv failed: throwing an exception\n");
             env->ThrowNew(klass, "recv error: check errno");
             env->DeleteLocalRef(klass);
+            buf = env->NewByteArray (4);
+            env->SetByteArrayRegion(buf, 0, 5, (jbyte*)"WTF?");
           }
         else
           {
@@ -192,12 +218,15 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
       }
     zmq_msg_close(&msg);
     return buf;
+#endif
 }
 
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
-      FILE* fp(fopen("ridiculous.txt", "at"));
+  assert(0);
+  abort();
+      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
       fprintf(fp, "sock, buf, offset, len, flags");
       fclose(fp);
     jbyte *data = env->GetByteArrayElements (buf, 0);
@@ -228,7 +257,9 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
 {
-      FILE* fp(fopen("ridiculous.txt", "at"));
+  assert(0);
+  abort();
+      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
       fprintf(fp, "sock, buf, flags");
       fclose(fp);
     jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
