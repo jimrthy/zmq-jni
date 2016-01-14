@@ -154,9 +154,9 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
 #endif
     if(result >= 0)
     {
-      int size = zmq_msg_size(&msg);
-          buf = env->NewByteArray(size);
-          env->SetByteArrayRegion(buf, 0, size, (jbyte*) zmq_msg_data (&msg));
+        int size = zmq_msg_size(&msg);
+        buf = env->NewByteArray(size);
+        env->SetByteArrayRegion(buf, 0, size, (jbyte*) zmq_msg_data (&msg));
     }
     else
     {
