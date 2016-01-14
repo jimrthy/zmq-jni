@@ -4,12 +4,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#warning "Don't do this"
-#undef NDEBUG
-#include <assert.h>
-#include <stdio.h>
-
-
 #include <sodium.h>
 #include <inttypes.h>
 #include "zmq.h"
@@ -150,15 +144,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket,
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint flags)
 {
-    jbyteArray buf;
-#if true
-    buf = env->NewByteArray(21);
-    // Q: How on Earth are any tests working?
-    env->SetByteArrayRegion(buf, 0, 21, (jbyte*)"Received 0+ bytes OK");
-#else
-          // This is what actually should happen.
-          // More or less.
-          // With some sort of error handling.
+    jbyteArray buf(NULL);
     zmq_msg_t msg;
     zmq_msg_init (&msg);
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
@@ -173,35 +159,25 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
           env->SetByteArrayRegion(buf, 0, size, (jbyte*) zmq_msg_data (&msg));
     }
     else
-      {
-        jclass klass(env->FindClass("java/lang/Exception"));
+    {
+        jclass klass(env->FindClass("java/lang/RuntimeException"));
         if(klass)
-          {
-            fprintf(fp, "recv failed: throwing an exception\n");
+        {
             env->ThrowNew(klass, "recv error: check errno");
             env->DeleteLocalRef(klass);
-            buf = env->NewByteArray (4);
-            env->SetByteArrayRegion(buf, 0, 5, (jbyte*)"WTF?");
-          }
+        }
         else
-          {
-      // Q: Is there anything reasonable/useful that can happen here?
-            return NULL;
-          }
+        {
+            // Q: Is there anything reasonable/useful that can happen here?
+        }
       }
     zmq_msg_close(&msg);
-#endif
     return buf;
 }
 
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
-  assert(0);
-  abort();
-      FILE* fp(fopen("/home/jimrthy/ridiculous.txt", "a"));
-      fprintf(fp, "sock, buf, offset, len, flags");
-      fclose(fp);
     jbyte *data = env->GetByteArrayElements (buf, 0);
     int rc = zmq_recv((void *) socket, data + offset, len, flags);
     env->ReleaseByteArrayElements (buf, data, 0);

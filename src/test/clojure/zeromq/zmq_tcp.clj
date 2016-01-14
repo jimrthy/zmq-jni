@@ -131,10 +131,15 @@
   (with-open [context (zmq/context)
               pull (doto (zmq/socket context :pull)
                      (zmq/connect "tcp://localhost:6001"))]
-    (println "Calling receive with flags:" zmq/dont-wait)
-    (let [actual (zmq/receive pull zmq/dont-wait)]
-      (println "Response:\n'" actual "'\nLength: " (count actual))
-      (is (nil? actual) (str "Expected NULL. Got:\n'" (String. actual) "'")))))
+    (try
+      (let [actual (zmq/receive pull zmq/dont-wait)]
+        (is false "That should have thrown an exception")
+        (is (nil? actual) (str "Expected NULL. Got:\n'" (String. actual) "'")))
+      (catch RuntimeException ex
+        (let [errno (zmq/errno pull)]
+          ;; TODO: This really should be made portable
+          ;; instead of a magic number
+          (is (= errno 11) "Expected EAGAIN"))))))
 
 (deftest multi-part-test
   (with-open [context (zmq/context)
