@@ -45,6 +45,8 @@ public final class ZMQ
 
     public static native String zmq_strerror(int errnum);
 
+    public static native String zmq_last_error_message();
+
     public static native int zmq_send(long socket, byte[] buf, int offset, int len, int flags);
 
     public static native int zmq_send(long socket, ByteBuffer buf, int flags);
@@ -54,6 +56,12 @@ public final class ZMQ
     public static native int zmq_recv(long socket, byte[] buf, int offset, int len, int flags);
 
     public static native int zmq_recv(long socket, ByteBuffer buf, int flags);
+
+    public static native byte[] zmq_safe_recv(long socket, int flags);
+
+    public static native void zmq_safe_recv(long socket, byte[] buf, int offset, int len, int flags);
+
+    public static native void zmq_safe_recv(long socket, ByteBuffer buf, int flags);
 
     public static native int zmq_setsockopt(long socket, int option, int value);
 
@@ -77,7 +85,7 @@ public final class ZMQ
     public static native boolean zmq_z85_encode(CharBuffer dest, byte[] data);
 
     public static native boolean zmq_z85_decode(byte[] dest, String data);
-    
+
     public static native boolean zmq_curve_keypair(CharBuffer publicKey, CharBuffer secretKey);
 
     // Constants - Message options

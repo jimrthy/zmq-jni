@@ -132,6 +132,33 @@ Java_org_zeromq_jni_ZMQ_zmq_1strerror (JNIEnv *env, jclass c, jint errnum)
     return env->NewStringUTF(str);
 }
 
+const char* get_current_error_string()
+{
+    int errnum = zmq_errno();
+    const char *str = zmq_strerror (errnum);
+    return str;
+}
+
+void throw_exception(JNIEnv *env, const char* class_name, const char* message) {
+    jclass ex_class = env->FindClass(class_name);
+    env->ThrowNew(ex_class, message);
+}
+
+void throw_runtime_exception(JNIEnv *env, const char* message) {
+    throw_exception(env, "java/lang/RuntimeException", message);
+}
+
+void throw_current_runtime_exception(JNIEnv *env) {
+    // TODO: This shouldn't be a RuntimeException
+    throw_runtime_exception(env, get_current_error_string());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_zeromq_jni_ZMQ_zmq_1last_1error_1message (JNIEnv *env, jclass c)
+{
+    return env->NewStringUTF(get_current_error_string());
+}
+
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
@@ -158,6 +185,30 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
     return buf;
 }
 
+JNIEXPORT jbyteArray JNICALL
+Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JI  (JNIEnv *env, jclass c, jlong socket, jint flags)
+{
+    zmq_msg_t msg;
+    zmq_msg_init (&msg);
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
+    int rc = zmq_recvmsg ((void *) socket, &msg, flags);
+#else
+    int rc = zmq_recv ((void *) socket, &msg, flags);
+#endif
+    jbyteArray buf;
+    if (rc >= 0) {
+        int size = zmq_msg_size (&msg);
+        buf = env->NewByteArray (size);
+        env->SetByteArrayRegion (buf, 0, size, (jbyte*) zmq_msg_data (&msg));
+        zmq_msg_close(&msg);
+    }
+    else {
+        buf = env->NewByteArray (0);
+        throw_current_runtime_exception (env);
+    }
+    return buf;
+}
+
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
@@ -165,6 +216,17 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket,
     int rc = zmq_recv((void *) socket, data + offset, len, flags);
     env->ReleaseByteArrayElements (buf, data, 0);
     return rc;
+}
+
+JNIEXPORT void JNICALL
+Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
+{
+    jbyte *data = env->GetByteArrayElements (buf, 0);
+    int rc = zmq_recv((void *) socket, data + offset, len, flags);
+    env->ReleaseByteArrayElements (buf, data, 0);
+    if (rc < 0) {
+        throw_current_runtime_exception(env);
+    }
 }
 
 JNIEXPORT jint JNICALL
@@ -204,6 +266,28 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass
         return read;
     }
     return read;
+}
+
+JNIEXPORT void JNICALL
+Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JLjava_nio_ByteBuffer_2I  (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
+{
+    jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
+    if(data == NULL) {
+        throw_exception(env, "java/lang/NullPointerException", "Destination Buffer");
+    }
+    else {
+        int lim = env->CallIntMethod(buf, limitMID);
+        int pos = env->CallIntMethod(buf, positionMID);
+        int rem = pos <= lim ? lim - pos : 0;
+
+        int read = zmq_recv((void *) socket, data + pos, rem, flags);
+        if (read > 0) {
+            read = read > rem ? rem : read;
+            env->CallVoidMethod(buf, setPositionMID, pos + read);
+        } else if (read < 0) {
+            throw_current_runtime_exception(env);
+        }
+    }
 }
 
 JNIEXPORT jint JNICALL
