@@ -125,6 +125,14 @@
   (receive-bb
     [this bb]
     [this bb flags])
+  (receive-safe
+    [this]
+    [this flags]
+    [this buffer flags]
+    [this buffer off len flags])
+  (receive-safe-bb
+    [this bb]
+    [this bb flags])
   (connect [this endpoint])
   (bind [this endpoint])
   (subscribe [this topic])
@@ -156,6 +164,18 @@
     (ZMQ/zmq_recv address ^ByteBuffer bb (int 0)))
   (receive-bb [this bb flags]
     (ZMQ/zmq_recv address ^ByteBuffer bb flags))
+  (receive-safe [this]
+    (ZMQ/zmq_safe_recv address 0))
+  (receive-safe [this flags]
+    (ZMQ/zmq_safe_recv address (int flags)))
+  (receive-safe [this buffer flags]
+    (receive-safe address buffer 0 (count buffer) flags))
+  (receive-safe [this buffer off len flags]
+    (ZMQ/zmq_safe_recv address buffer (int off) (int len) (int flags)))
+  (receive-safe-bb [this bb]
+    (ZMQ/zmq_safe_recv address ^ByteBuffer bb (int 0)))
+  (receive-safe-bb [this bb flags]
+    (ZMQ/zmq_safe_recv address ^ByteBuffer bb flags))
   (connect [this endpoint]
     (ZMQ/zmq_connect address ^String endpoint))
   (bind [this endpoint]

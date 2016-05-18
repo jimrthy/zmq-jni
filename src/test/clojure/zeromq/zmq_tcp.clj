@@ -160,3 +160,39 @@
     (println "Expected:" (apply str (map #(format "%02X " %) expected)))
     (println "Decoded :" (apply str (map #(format "%02X " %) dest)))
     (is (java.util.Arrays/equals expected dest))))
+
+(deftest exception-throwing-recv-test
+  (with-open [context (zmq/context)
+              pull (doto (zmq/socket context :pull)
+                     (zmq/connect "tcp://localhost:6001"))]
+    (testing "Fail to receive and return an array"
+      (try
+        (zmq/receive-safe pull zmq/dont-wait)
+        (is false "Should have thrown an exception")
+        (catch Exception ex
+          ;; Some sort of exception belongs here.
+          ;; Q: Which kind actually makes sense?
+          )))
+    (testing "Fail to receive into byte array"
+      (try
+        (let [buffer (byte-array (range 40))]
+          (zmq/receive-safe pull buffer zmq/dont-wait)
+          (is false "Should have thrown an exception"))
+        (catch RuntimeException ex
+          ;; This exception type's for errors in the JVM code.
+          ;; Which, really, this probably is.
+          ;; Or maybe it's a problem with the other side of the socket.
+          ;; Or maybe it's a broken network cable.
+          ;; Without checking errno, there's no way to tell.
+          ;; Of course, we could always check errno here.
+          ;; Seems like it would be better to throw meaningful
+          ;; exceptions in the first place, but that would
+          ;; be an incremental improvement over the basic idea.
+          )))
+    (testing "Fail to receive into a ByteBuffer"
+      (let [bb (ByteBuffer/allocateDirect 12)]
+        (.position bb 2)
+        (try
+          (zmq/receive-safe-bb pull bb zmq/dont-wait)
+          (is false "Should have thrown")
+          (catch Exception ex))))))
