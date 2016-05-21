@@ -40,6 +40,7 @@ Java_org_zeromq_jni_ZMQ_version (JNIEnv *env, jclass c)
 JNIEXPORT jlong JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1ctx_1new  (JNIEnv *env, jclass c)
 {
+    errno = 0;
     void *context = zmq_ctx_new();
     if(context)
         return (jlong) context;
@@ -49,6 +50,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1ctx_1new  (JNIEnv *env, jclass c)
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1ctx_1set (JNIEnv *env, jclass c, jlong context, jint name, jint value)
 {
+    errno = 0;
     int rc = zmq_ctx_set((void *) context, name, value);
     return rc == 0;
 }
@@ -56,12 +58,14 @@ Java_org_zeromq_jni_ZMQ_zmq_1ctx_1set (JNIEnv *env, jclass c, jlong context, jin
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1ctx_1get (JNIEnv *env, jclass c, jlong context, jint value)
 {
+    errno = 0;
     return zmq_ctx_get((void *) context, value);
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1ctx_1destroy (JNIEnv *env, jclass c, jlong context)
 {
+    errno = 0;
     int rc = zmq_ctx_destroy((void *) context);
     return rc == 0;
 }
@@ -69,6 +73,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1ctx_1destroy (JNIEnv *env, jclass c, jlong context)
 JNIEXPORT jlong JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1socket (JNIEnv *env, jclass c, jlong context, jint type)
 {
+    errno = 0;
     void *socket = zmq_socket((void *) context, type);
     if(socket)
         return (jlong) socket;
@@ -78,6 +83,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1socket (JNIEnv *env, jclass c, jlong context, jint 
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1bind (JNIEnv *env, jclass c, jlong socket, jstring endpoint)
 {
+    errno = 0;
     const char *ep = (const char *) env->GetStringUTFChars (endpoint, NULL);
     int rc = zmq_bind ((void *) socket, ep);
     env->ReleaseStringUTFChars(endpoint, ep);
@@ -87,6 +93,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1bind (JNIEnv *env, jclass c, jlong socket, jstring 
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1unbind (JNIEnv *env, jclass c, jlong socket, jstring endpoint)
 {
+    errno = 0;
     const char *ep = (const char *) env->GetStringUTFChars (endpoint, NULL);
     int rc = zmq_unbind ((void *) socket, ep);
     env->ReleaseStringUTFChars(endpoint, ep);
@@ -97,6 +104,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1unbind (JNIEnv *env, jclass c, jlong socket, jstrin
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1connect (JNIEnv *env, jclass c, jlong socket, jstring endpoint)
 {
+    errno = 0;
     const char *ep = env->GetStringUTFChars (endpoint, NULL);
     int rc = zmq_connect ((void *) socket, ep);
     env->ReleaseStringUTFChars(endpoint, ep);
@@ -106,6 +114,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1connect (JNIEnv *env, jclass c, jlong socket, jstri
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1disconnect (JNIEnv *env, jclass c, jlong socket, jstring endpoint)
 {
+    errno = 0;
     const char *ep = (const char *) env->GetStringUTFChars (endpoint, NULL);
     int rc = zmq_disconnect ((void *) socket, ep);
     env->ReleaseStringUTFChars(endpoint, ep);
@@ -115,6 +124,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1disconnect (JNIEnv *env, jclass c, jlong socket, js
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1close (JNIEnv *env, jclass c, jlong socket)
 {
+    errno = 0;
     int rc = zmq_close((void *) socket);
     return rc == 0;
 }
@@ -140,6 +150,7 @@ const char* get_current_error_string()
 }
 
 void throw_exception(JNIEnv *env, const char* class_name, const char* message) {
+    // Really just a convenience wrapper
     jclass ex_class = env->FindClass(class_name);
     env->ThrowNew(ex_class, message);
 }
@@ -149,7 +160,7 @@ void throw_runtime_exception(JNIEnv *env, const char* message) {
 }
 
 void throw_current_runtime_exception(JNIEnv *env) {
-    // TODO: This shouldn't be a RuntimeException
+    // TODO: This shouldn't be a RuntimeException...should it?
     throw_runtime_exception(env, get_current_error_string());
 }
 
@@ -162,6 +173,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1last_1error_1message (JNIEnv *env, jclass c)
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
+    errno = 0;
     jbyte *data = env->GetByteArrayElements (buf, 0);
     int rc = zmq_send((void *) socket, data + offset, len, flags);
     env->ReleaseByteArrayElements (buf, data, 0);
@@ -171,6 +183,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__J_3BIII (JNIEnv *env, jclass c, jlong socket,
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint flags)
 {
+    errno = 0;
     zmq_msg_t msg;
     zmq_msg_init (&msg);
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
@@ -188,6 +201,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JI (JNIEnv *env, jclass c, jlong socket, jint
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JI  (JNIEnv *env, jclass c, jlong socket, jint flags)
 {
+    errno = 0;
     zmq_msg_t msg;
     zmq_msg_init (&msg);
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(3,0,0)
@@ -212,6 +226,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JI  (JNIEnv *env, jclass c, jlong socke
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
+    errno = 0;
     jbyte *data = env->GetByteArrayElements (buf, 0);
     int rc = zmq_recv((void *) socket, data + offset, len, flags);
     env->ReleaseByteArrayElements (buf, data, 0);
@@ -221,6 +236,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket,
 JNIEXPORT void JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__J_3BIII (JNIEnv *env, jclass c, jlong socket, jbyteArray buf, jint offset, jint len, jint flags)
 {
+    errno = 0;
     jbyte *data = env->GetByteArrayElements (buf, 0);
     int rc = zmq_recv((void *) socket, data + offset, len, flags);
     env->ReleaseByteArrayElements (buf, data, 0);
@@ -232,6 +248,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__J_3BIII (JNIEnv *env, jclass c, jlong s
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1send__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
 {
+    errno = 0;
     jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
     if(data == NULL)
         return -1;
@@ -251,6 +268,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1send__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1recv__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
 {
+    errno = 0;
     jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
     if(data == NULL)
         return -1;
@@ -271,6 +289,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1recv__JLjava_nio_ByteBuffer_2I (JNIEnv *env, jclass
 JNIEXPORT void JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JLjava_nio_ByteBuffer_2I  (JNIEnv *env, jclass c, jlong socket, jobject buf, jint flags)
 {
+    errno = 0;
     jbyte* data = (jbyte*) env->GetDirectBufferAddress(buf);
     if(data == NULL) {
         throw_exception(env, "java/lang/NullPointerException", "Destination Buffer");
@@ -293,6 +312,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1safe_1recv__JLjava_nio_ByteBuffer_2I  (JNIEnv *env,
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JII (JNIEnv *env, jclass c, jlong socket, jint option, jint value)
 {
+    errno = 0;
     int val = (int) value;
     int rc = zmq_setsockopt ((void *) socket, option, &val, sizeof(val));
     return rc;
@@ -301,6 +321,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JII (JNIEnv *env, jclass c, jlong socke
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JIJ (JNIEnv *env, jclass c, jlong socket, jint option, jlong value)
 {
+    errno = 0;
     uint64_t val = (uint64_t) value;
     int rc = zmq_setsockopt ((void *) socket, option, &val, sizeof(val));
     return rc;
@@ -309,6 +330,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JIJ (JNIEnv *env, jclass c, jlong socke
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JI_3B (JNIEnv *env, jclass c, jlong socket, jint option, jbyteArray value)
 {
+    errno = 0;
     jbyte *data = env->GetByteArrayElements (value, 0);
     size_t size = env->GetArrayLength (value);
     int rc = zmq_setsockopt ((void *) socket, option, data, size);
@@ -319,6 +341,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1setsockopt__JI_3B (JNIEnv *env, jclass c, jlong soc
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1int (JNIEnv *env, jclass c, jlong socket, jint option)
 {
+    errno = 0;
     int val;
     size_t size = sizeof (val);
     zmq_getsockopt ((void *) socket, option, &val, &size);
@@ -328,6 +351,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1int (JNIEnv *env, jclass c, jlong socke
 JNIEXPORT jlong JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1long (JNIEnv *env, jclass c, jlong socket, jint option)
 {
+    errno = 0;
     uint64_t val;
     size_t size = sizeof (val);
     zmq_getsockopt ((void *) socket, option, &val, &size);
@@ -337,6 +361,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1long (JNIEnv *env, jclass c, jlong sock
 JNIEXPORT jbyteArray JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1bytes (JNIEnv *env, jclass c, jlong socket, jint option)
 {
+    errno = 0;
     char val[255];
     size_t size = 255;
     zmq_getsockopt ((void *) socket, option, val, &size);
@@ -348,12 +373,14 @@ Java_org_zeromq_jni_ZMQ_zmq_1getsockopt_1bytes (JNIEnv *env, jclass c, jlong soc
 JNIEXPORT jint JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1poll (JNIEnv *env, jclass c, jlong items, jint count, jlong timeout)
 {
+    errno = 0;
     return zmq_poll ((zmq_pollitem_t *) items, count, timeout);
 }
 
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1z85_1encode (JNIEnv *env, jclass c, jobject dest, jbyteArray data)
 {
+    errno = 0;
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,0,0)
     jbyte *public_key = env->GetByteArrayElements (data, 0);
     size_t size = env->GetArrayLength (data);
@@ -372,6 +399,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1z85_1encode (JNIEnv *env, jclass c, jobject dest, j
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1z85_1decode (JNIEnv *env, jclass c, jbyteArray dest, jstring data)
 {
+    errno = 0;
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,0,0)
     jbyte *buf = env->GetByteArrayElements (dest, 0);
     const char *encoded = env->GetStringUTFChars (data, NULL);
@@ -386,6 +414,7 @@ Java_org_zeromq_jni_ZMQ_zmq_1z85_1decode (JNIEnv *env, jclass c, jbyteArray dest
 JNIEXPORT jboolean JNICALL
 Java_org_zeromq_jni_ZMQ_zmq_1curve_1keypair (JNIEnv *env, jclass c, jobject pub, jobject secret)
 {
+    errno = 0;
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,0,5)
     char public_key [41];
     char secret_key [41];
